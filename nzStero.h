@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include <EEPROM.h>
 
-const int EEPROM_SIZE = 1024 ;
+const int EEPROM_SIZE = 1024;
 
 class nzStero {
 public:
@@ -16,19 +16,20 @@ public:
   int check_xor(int, int);
   void showInOut(bool, bool);  // inputs , outputs
   void addMarker(const char* name, int value);
-  void addExtraVar(const char* name, int value);
+  void addExtraVar(String name, int value);
   void setExtraVar(const char* name, int value);
   int getExtraVar(const char* name);
   int findVariableAddress(const char* name);
 private:
-  
+
   int input[4];
   int output[4];
   int outputVal[4];
-  
+
   bool startsWith(const char* phrase, const char* letter);
   static const char* errors[];
   //void sErrors()
+    int acAdres= 0;
 };
 
 nzStero::nzStero() {
@@ -85,7 +86,11 @@ void nzStero::initialize() {
   // Serial.println("SD initialization failed!");
   //  while (1)
   //  ;
-  
+  for (int i = 0; i < EEPROM.length(); i++) {
+    EEPROM.write(i, NULL);  // Inicjalizacja wartością 0 na każdym adresie w pamięci EEPROM
+     
+  }
+
 }
 
 
@@ -160,145 +165,175 @@ int nzStero::check_xor(int x, int y) {
 //     addExtraVar(addExtraVar(name, value))
 //   }
 
-  bool nzStero::startsWith(const char* phrase, const char* letter) {
-    return (phrase[0] == letter);
+bool nzStero::startsWith(const char* phrase, const char* letter) {
+  return (phrase[0] == letter);
+}
+void nzStero::addExtraVar(String name, int value) {
+  String fullName = name + String(value);
+  int length = fullName.length();
+  for (int i = 0; i < length; i++) {
+    EEPROM.write(acAdres + i, fullName.charAt(i));
   }
+  acAdres = acAdres + length;
+}
+  //if (address == -1) {
+    // Zmienna nie istnieje, szukamy dostępnego miejsca w pamięci EEPROM
 
-  void nzStero::addExtraVar(const char* name, int value) {
-
-    int address = findVariableAddress(name);
-    if (address == -1) {
-      // Zmienna nie istnieje, można dodać nową
-      int length = strlen(name);
-      if (length < 8) {  // Maksymalna długość nazwy zmiennej
-        for (int i = 0; i < length; i++) {
-          EEPROM.write(address + i, name[i]);
-        }
-        EEPROM.write(address + length, value);
-      }
-    }
-  }
-
-  void nzStero::setExtraVar(const char* name, int value) {
-    int address = findVariableAddress(name);
-    if (address != -1) {
-      EEPROM.write(address, value);
-    }
-  }
-
-  int nzStero::getExtraVar(const char* name) {
-
-    int address = findVariableAddress(name);
-    if (address != -1) {
-    //   adres  = myStero.findVariableAddress("M1");
-    
-    // int odczytanaLiczba = EEPROM.read(adres);
-    // Serial.println(char(odczytanaLiczba));//// dokonczyc to 
-      return EEPROM.read(address);
-    }
-    return -1;  // Zmienna nie znaleziona
-  }
-
-  int nzStero::findVariableAddress(const char* name) {
-    for (int address = 0; address < EEPROM_SIZE; address++) {
-      int length = strlen(name);
-      bool found = true;
-      for (int i = 0; i < length; i++) {
-        if (EEPROM.read(address + i) != name[i]) {
-          found = false;
-          break;
-        }
-      }
-      if (found) {
-        return address + length;
-      }
-    }
-    return -1;  // Zmienna nie znaleziona
-  }
-
-  // void nzStero::addExtraVar(const char* name, int value = 0) {
-  //   if (checkVarInSD(name) == false) {
-  //     File file = SD.open(filename, FILE_WRITE);  // Otwarcie pliku w trybie zapisu
-
-  //     if (file) {
-  //       char line[50];
-  //       sprintf(line, "%s=%d", name, value);  // Sformatowanie linii tekstu
-  //       file.println(line);                   // Dopisanie nowej linii do pliku
-  //       file.close();                         // Zamknięcie pliku
-  //     }
-  //   }
-  // }
-  // void nzStero::setExtraVar(const char* name, int value) {
-  //   if (checkVarInSD(name)) {
-  //     File originalFile = SD.open(filename, FILE_READ);
-  //     File tempFile = SD.open("temp.txt", FILE_WRITE);
-
-  //     if (originalFile && tempFile) {
-  //       while (originalFile.available()) {
-  //         String line = originalFile.readStringUntil('\n');
-  //         if (!line.startsWith(name)) {
-  //           tempFile.println(line);
-  //         } else {
-  //           char newline[50];
-  //           sprintf(newline, "%s=%d", name, value);
-  //           tempFile.println(newline);
-  //         }
-  //       }
-
-  //       originalFile.close();
-  //       tempFile.close();
-
-  //       SD.remove(filename);
-  //       SD.rename("temp.txt", filename);
-  //     }
-  //   }
+    // address = 0;
+    // while (address < EEPROM_SIZE) {
+    //   int length = strlen(name);
+    //   bool found = true;
+    //   for (int i = 0; i < length; i++) {
+    //     if (EEPROM.read(address + i) != name[i]) {
+    //       found = false;
+    //       break;
+    //     }
+    //   }
+    //   if (found) {
+    //     // Zmienna o takiej nazwie już istnieje, przechodzimy do kolejnego adresu
+    //     address += length + 1; // Przesuń adres poza nazwę zmiennej i separator
+    //   } else {
+    //     // Znaleźliśmy dostępne miejsce, zapisujemy nazwę i wartość
+    //     for (int i = 0; i < length; i++) {
+    //       EEPROM.write(address + i, name[i]);
+    //     }
+    //     EEPROM.write(address + length, ':'); // Separator między nazwą a wartością
+    //     EEPROM.write(address + length + 1, value); // Zapisz wartość
+    //     Serial.print("Dodano zmienną: ");
+    //     Serial.print(name);
+    //     Serial.print(" na adresie: ");
+    //     Serial.println(address);
+    //     return; // Przerwij pętlę, gdy znaleziono miejsce i zapisano zmienną
+    //   }
+    // }
+    // Jeśli przeszukano całą pamięć i nie znaleziono miejsca, wypisz błąd
+  //   Serial.println("Błąd: Brak dostępnego miejsca w pamięci EEPROM!");
+  // } else {
+  //   // Jeśli zmienna istnieje, zaktualizuj jej wartość
+  //   address = address + strlen(name) + 1; // Przesuń adres poza nazwę zmiennej i separator
+  //   EEPROM.write(address, ':'); // Separator między nazwą a wartością
+  //   EEPROM.write(address + 1, value); // Zapisz wartość
+  //   Serial.print("Aktualizowano zmienną: ");
+  //   Serial.print(name);
+  //   Serial.print(" na adresie: ");
+  //   Serial.println(address);
   // }
 
-  // int nzStero::getExtraVar(const char* name) {
-  //   File file = SD.open(filename, FILE_READ);
-  //   int value = -1;  // Wartość domyślna, jeśli zmienna nie zostanie znaleziona
-
-  //   if (file) {
-  //     while (file.available()) {
-  //       String line = file.readStringUntil('\n');
-  //       if (line.startsWith(name)) {
-  //         int equalsPos = line.indexOf('=');
-  //         if (equalsPos != -1) {
-  //           value = line.substring(equalsPos + 1).toInt();
-  //         }
-  //         break;  // Przerywamy pętlę, bo znaleźliśmy wartość
-  //       }
-  //     }
-  //     file.close();
-  //   }
-
-  //   return value;
-  // }
-
-
-
-  void nzStero::showInOut(bool input, bool output) {
-    if (input == 1) {
-      Serial.print("Inputs: ");
-      Serial.print(check(0));
-      Serial.print(" ");
-      Serial.print(check(1));
-      Serial.print(" ");
-      Serial.print(check(2));
-      Serial.print(" ");
-      Serial.print(check(3));
-      Serial.print(" ");
-    }
-    if (output == 1) {
-      Serial.print("Outputs: ");
-      Serial.print(outputVal[0]);
-      Serial.print(" ");
-      Serial.print(outputVal[1]);
-      Serial.print(" ");
-      Serial.print(outputVal[2]);
-      Serial.print(" ");
-      Serial.print(outputVal[3]);
-      Serial.print(" ");
-    }
-    Serial.println(" ");
+void nzStero::setExtraVar(const char* name, int value) {
+  int address = findVariableAddress(name);
+  if (address != -1) {
+    EEPROM.write(address, value);
   }
+}
+
+int nzStero::getExtraVar(const char* name) {
+  int address = findVariableAddress(name);
+  if (address != -1) {
+    return EEPROM.read(address);
+  }
+  return -1;  // Zmienna nie znaleziona
+}
+
+int nzStero::findVariableAddress(const char* name) {
+  for (int address = 0; address < EEPROM_SIZE; address++) {
+    int length = strlen(name);
+    bool found = true;
+    for (int i = 0; i < length; i++) {
+      if (EEPROM.read(address + i) != name[i]) {
+        found = false;
+        break;
+      }
+    }
+    if (found) {
+      return address + length;
+    }
+  }
+  return -1;  // Zmienna nie znaleziona
+}
+
+// void nzStero::addExtraVar(const char* name, int value = 0) {
+//   if (checkVarInSD(name) == false) {
+//     File file = SD.open(filename, FILE_WRITE);  // Otwarcie pliku w trybie zapisu
+
+//     if (file) {
+//       char line[50];
+//       sprintf(line, "%s=%d", name, value);  // Sformatowanie linii tekstu
+//       file.println(line);                   // Dopisanie nowej linii do pliku
+//       file.close();                         // Zamknięcie pliku
+//     }
+//   }
+// }
+// void nzStero::setExtraVar(const char* name, int value) {
+//   if (checkVarInSD(name)) {
+//     File originalFile = SD.open(filename, FILE_READ);
+//     File tempFile = SD.open("temp.txt", FILE_WRITE);
+
+//     if (originalFile && tempFile) {
+//       while (originalFile.available()) {
+//         String line = originalFile.readStringUntil('\n');
+//         if (!line.startsWith(name)) {
+//           tempFile.println(line);
+//         } else {
+//           char newline[50];
+//           sprintf(newline, "%s=%d", name, value);
+//           tempFile.println(newline);
+//         }
+//       }
+
+//       originalFile.close();
+//       tempFile.close();
+
+//       SD.remove(filename);
+//       SD.rename("temp.txt", filename);
+//     }
+//   }
+// }
+
+// int nzStero::getExtraVar(const char* name) {
+//   File file = SD.open(filename, FILE_READ);
+//   int value = -1;  // Wartość domyślna, jeśli zmienna nie zostanie znaleziona
+
+//   if (file) {
+//     while (file.available()) {
+//       String line = file.readStringUntil('\n');
+//       if (line.startsWith(name)) {
+//         int equalsPos = line.indexOf('=');
+//         if (equalsPos != -1) {
+//           value = line.substring(equalsPos + 1).toInt();
+//         }
+//         break;  // Przerywamy pętlę, bo znaleźliśmy wartość
+//       }
+//     }
+//     file.close();
+//   }
+
+//   return value;
+// }
+
+
+
+void nzStero::showInOut(bool input, bool output) {
+  if (input == 1) {
+    Serial.print("Inputs: ");
+    Serial.print(check(0));
+    Serial.print(" ");
+    Serial.print(check(1));
+    Serial.print(" ");
+    Serial.print(check(2));
+    Serial.print(" ");
+    Serial.print(check(3));
+    Serial.print(" ");
+  }
+  if (output == 1) {
+    Serial.print("Outputs: ");
+    Serial.print(outputVal[0]);
+    Serial.print(" ");
+    Serial.print(outputVal[1]);
+    Serial.print(" ");
+    Serial.print(outputVal[2]);
+    Serial.print(" ");
+    Serial.print(outputVal[3]);
+    Serial.print(" ");
+  }
+  Serial.println(" ");
+}
