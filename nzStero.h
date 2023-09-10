@@ -15,9 +15,11 @@ public:
   int check_nor(int, int);
   int check_xor(int, int);
   void showInOut(bool, bool);  // inputs , outputs
-  void addMarker(const char* name, int value);
-  void addExtraVar(String name, int value);
-  void setExtraVar(const char* name, int value);
+  void setMarker(String name, int value);
+  int getMarker(const char* name);
+  void setCounter(String name, int value);
+  int getCounter(const char* name);
+  void setExtraVar(String name, char value);
   int getExtraVar(const char* name);
   int findVariableAddress(const char* name);
 private:
@@ -29,7 +31,8 @@ private:
   bool startsWith(const char* phrase, const char* letter);
   static const char* errors[];
   //void sErrors()
-    int acAdres= 0;
+  int acAdres = 0;
+  int countMax = 999; // zmieic format w set counter 
 };
 
 nzStero::nzStero() {
@@ -88,9 +91,7 @@ void nzStero::initialize() {
   //  ;
   for (int i = 0; i < EEPROM.length(); i++) {
     EEPROM.write(i, NULL);  // Inicjalizacja wartością 0 na każdym adresie w pamięci EEPROM
-     
   }
-
 }
 
 
@@ -168,68 +169,160 @@ int nzStero::check_xor(int x, int y) {
 bool nzStero::startsWith(const char* phrase, const char* letter) {
   return (phrase[0] == letter);
 }
-void nzStero::addExtraVar(String name, int value) {
-  String fullName = name + String(value);
-  int length = fullName.length();
-  for (int i = 0; i < length; i++) {
-    EEPROM.write(acAdres + i, fullName.charAt(i));
+// void nzStero::addExtraVar(String name, int value) {
+//   String fullName = name + String(value);
+//   int length = fullName.length();
+//   for (int i = 0; i < length; i++) {
+//     EEPROM.write(acAdres + i, fullName.charAt(i));
+//   }
+//   acAdres = acAdres + length;
+// }
+//{if (address == -1) {
+// Zmienna nie istnieje, szukamy dostępnego miejsca w pamięci EEPROM
+
+// address = 0;
+// while (address < EEPROM_SIZE) {
+//   int length = strlen(name);
+//   bool found = true;
+//   for (int i = 0; i < length; i++) {
+//     if (EEPROM.read(address + i) != name[i]) {
+//       found = false;
+//       break;
+//     }
+//   }
+//   if (found) {
+//     // Zmienna o takiej nazwie już istnieje, przechodzimy do kolejnego adresu
+//     address += length + 1; // Przesuń adres poza nazwę zmiennej i separator
+//   } else {
+//     // Znaleźliśmy dostępne miejsce, zapisujemy nazwę i wartość
+//     for (int i = 0; i < length; i++) {
+//       EEPROM.write(address + i, name[i]);
+//     }
+//     EEPROM.write(address + length, ':'); // Separator między nazwą a wartością
+//     EEPROM.write(address + length + 1, value); // Zapisz wartość
+//     Serial.print("Dodano zmienną: ");
+//     Serial.print(name);
+//     Serial.print(" na adresie: ");
+//     Serial.println(address);
+//     return; // Przerwij pętlę, gdy znaleziono miejsce i zapisano zmienną
+//   }
+// }
+// Jeśli przeszukano całą pamięć i nie znaleziono miejsca, wypisz błąd
+//   Serial.println("Błąd: Brak dostępnego miejsca w pamięci EEPROM!");
+// } else {
+//   // Jeśli zmienna istnieje, zaktualizuj jej wartość
+//   address = address + strlen(name) + 1; // Przesuń adres poza nazwę zmiennej i separator
+//   EEPROM.write(address, ':'); // Separator między nazwą a wartością
+//   EEPROM.write(address + 1, value); // Zapisz wartość
+//   Serial.print("Aktualizowano zmienną: ");
+//   Serial.print(name);
+//   Serial.print(" na adresie: ");
+//   Serial.println(address);
+// }}
+void nzStero::setMarker(String name, int value) {
+  if (name.length() != 4 || name[0] != 'M' || !isdigit(name[1]) || !isdigit(name[2]) || !isdigit(name[3])) {
+    Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu MXYZ, gdzie XYZ to trzy cyfry.");
+    return;
   }
-  acAdres = acAdres + length;
+  if (value != 1 && value != 0) {
+    Serial.println("Błędna wartość. Oczekiwana 0/1");
+    return;
+  }
+  setExtraVar(name, value);
 }
-  //if (address == -1) {
-    // Zmienna nie istnieje, szukamy dostępnego miejsca w pamięci EEPROM
+int nzStero::getMarker(const char* name) {
 
-    // address = 0;
-    // while (address < EEPROM_SIZE) {
-    //   int length = strlen(name);
-    //   bool found = true;
-    //   for (int i = 0; i < length; i++) {
-    //     if (EEPROM.read(address + i) != name[i]) {
-    //       found = false;
-    //       break;
-    //     }
-    //   }
-    //   if (found) {
-    //     // Zmienna o takiej nazwie już istnieje, przechodzimy do kolejnego adresu
-    //     address += length + 1; // Przesuń adres poza nazwę zmiennej i separator
-    //   } else {
-    //     // Znaleźliśmy dostępne miejsce, zapisujemy nazwę i wartość
-    //     for (int i = 0; i < length; i++) {
-    //       EEPROM.write(address + i, name[i]);
-    //     }
-    //     EEPROM.write(address + length, ':'); // Separator między nazwą a wartością
-    //     EEPROM.write(address + length + 1, value); // Zapisz wartość
-    //     Serial.print("Dodano zmienną: ");
-    //     Serial.print(name);
-    //     Serial.print(" na adresie: ");
-    //     Serial.println(address);
-    //     return; // Przerwij pętlę, gdy znaleziono miejsce i zapisano zmienną
-    //   }
-    // }
-    // Jeśli przeszukano całą pamięć i nie znaleziono miejsca, wypisz błąd
-  //   Serial.println("Błąd: Brak dostępnego miejsca w pamięci EEPROM!");
-  // } else {
-  //   // Jeśli zmienna istnieje, zaktualizuj jej wartość
-  //   address = address + strlen(name) + 1; // Przesuń adres poza nazwę zmiennej i separator
-  //   EEPROM.write(address, ':'); // Separator między nazwą a wartością
-  //   EEPROM.write(address + 1, value); // Zapisz wartość
-  //   Serial.print("Aktualizowano zmienną: ");
-  //   Serial.print(name);
-  //   Serial.print(" na adresie: ");
-  //   Serial.println(address);
-  // }
+  return getExtraVar(name);
+}
 
-void nzStero::setExtraVar(const char* name, int value) {
-  int address = findVariableAddress(name);
+void nzStero::setCounter(String name, int value) {
+  if (name.length() != 4 || name[0] != 'C' || !isdigit(name[1]) || !isdigit(name[2]) || !isdigit(name[3])) {
+    Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu CXYZ, gdzie XYZ to trzy cyfry.");
+    return;
+  }
+  if (value >= 0  && value <= countMax) {
+    Serial.print("Błędna wartość. Oczekiwany zakres 0- ");
+    Serial.println(countMax);
+    return;
+  }
+  String countFormat;
+  if (value < 10) {
+    countFormat = "00" + String(value);
+  } else if (value < 100) {
+    countFormat = "0" + String(value);
+  } else {
+    countFormat = String(value);
+  }
+   const char* countValue = countFormat.c_str();
+  setExtraVar(name, countValue);
+}
+int nzStero::getCounter(const char* name) {
+
+  return getExtraVar(name);
+}
+
+void nzStero::setExtraVar(String name, char value) {
+  int address = findVariableAddress(name.c_str());
   if (address != -1) {
-    EEPROM.write(address, value);
+    char valueChar = value;
+    // char valueChar = '0' + value;
+    EEPROM.write(address, valueChar);
+    Serial.print("Wartość nadpisana w adresie ");
+    Serial.print(address);
+    Serial.print(" na wartość ");
+    Serial.println(value);
+  } else {
+    // Jeśli zmienna nie istnieje, dodaj ją do EEPROM
+    String fullName = name + String(value);
+    int length = fullName.length();
+    for (int i = 0; i < length; i++) {
+      EEPROM.write(acAdres + i, fullName.charAt(i));
+    }
+    Serial.print("Nowa wartość ");
+    Serial.print(name);
+    Serial.print(" dodana od adresu zaczynajacego się ");
+    Serial.print(acAdres);
+    Serial.print(" o wartości ");
+    Serial.println(value);
+    acAdres = acAdres + length;
   }
+  return 0;  // Zwróć sukces
 }
+
+// int address = findVariableAddress(name.c_str());
+// if (address != -1) {
+//   char valueChar = '0' + value;
+//   EEPROM.write(address, valueChar);
+//   Serial.print("Wartość nadpisana w adresie ");
+//   Serial.print(address);
+//   Serial.print(" na wartość ");
+//   Serial.println(value);
+// } else {
+//   // Jeśli zmienna nie istnieje, dodaj ją do EEPROM
+//   String fullName = name + String(value);
+//   int length = fullName.length();
+//   for (int i = 0; i < length; i++) {
+//     EEPROM.write(acAdres + i, fullName.charAt(i));
+//   }
+//   Serial.print("Nowa wartość dodana od adresu ");
+//   Serial.print(acAdres);
+//   Serial.print(" o wartości ");
+//   Serial.println(value);
+//   acAdres = acAdres + length;
+// }
+// }
+// void nzStero::setExtraVar(const char* name, int value) {
+//   int address = findVariableAddress(name);
+//   if (address != -1) {
+//     EEPROM.write(address, charAt(value));
+//   }
+// }
 
 int nzStero::getExtraVar(const char* name) {
   int address = findVariableAddress(name);
   if (address != -1) {
-    return EEPROM.read(address);
+    char charValue = EEPROM.read(address);
+    return atoi(&charValue);
   }
   return -1;  // Zmienna nie znaleziona
 }
