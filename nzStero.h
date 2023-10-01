@@ -18,9 +18,9 @@ public:
   void setMarker(String name, int value);
   int getMarker(const char* name);
   void setCounter(String name, int value);
-  void addToCounter(String name, int value);
-  bool checkCounter(String name);
-  int getCounter(const char* name);
+  void addToCounter(const char*  name, int value);
+  bool checkCounter(const char* name);
+  long int getCounter(const char* name);
 
 private:
   void setExtraVar(String name, const char* value);
@@ -161,12 +161,11 @@ void nzStero::setMarker(String name, int value) {
     return;
   }
   String stringValue = String(value);
-  const char* charValue = stringValue.c_str();
-  setExtraVar(name, charValue);
+  
+  setExtraVar(name, stringValue.c_str());
 }
-
 int nzStero::getMarker(const char* name) {
-  int iMarker = getExtraVar(name,1).toInt();
+  int iMarker = getExtraVar(name, 1).toInt();
   return iMarker;
 }void nzStero::setCounter(String name, int value) {
   if (name.length() != 4 || name[0] != 'C' || !isdigit(name[1]) || !isdigit(name[2]) || !isdigit(name[3])) {
@@ -183,49 +182,76 @@ int nzStero::getMarker(const char* name) {
   if (countLength < 3) {
     countFormat = String("000").substring(0, 3 - countLength) + countFormat;
   }
-  const char* countValue = countFormat.c_str();
+  countFormat += "000";
   
-  int address = findVariableAddress(name.c_str());
-  if (address != -1) {
-    for (int i = 0; i < 3; i++) {  // Zakładam, że wartość licznika jest zawsze trzycyfrowa
-      EEPROM.write(address + i, countValue[i]);
-    }
-    EEPROM.write(address + 3, '\0');  // Zakończ znakiem null
-  } else {
-    // Jeśli zmienna nie istnieje, dodaj ją do EEPROM
-    String fullName = name + countFormat;
-    int length = fullName.length();
-    for (int i = 0; i < length; i++) {
-      EEPROM.write(acAdres + i, fullName.charAt(i));
-    }
-    EEPROM.write(acAdres + length, '\0');  // Zakończ znakiem null
-    acAdres += length + 1;  // Aktualizuj wskaźnik
+  setExtraVar(name, countFormat.c_str());
+}
+
+
+long int nzStero::getCounter(const char* name) {
+  String sCounter = getExtraVar(name, 6);
+  String gCounter= sCounter.substring(6 - 3);
+ 
+  
+  long int lCounter = gCounter.toInt(); // Konwersja na long int
+
+  return lCounter;
+}
+void nzStero::addToCounter(const char* name, int value) {
+  String sCounter = getExtraVar(name, 6);
+  String fCounter = sCounter.substring(0, 3);
+  String valueCounter = sCounter.substring(3);
+
+  long int lfCounter = fCounter.toInt();
+  long int lvalueCounter = valueCounter.toInt();
+
+  lvalueCounter = lvalueCounter + value;
+
+  String lvalueCounterString = String(lvalueCounter);
+  String countFormat = String("000").substring(0, 3 - lvalueCounterString.length()) + lvalueCounterString;
+
+  String finalCounter = String(lfCounter) + countFormat;
+
+  const char* charFinalCounter = finalCounter.c_str();
+  Serial.println(charFinalCounter);
+
+  setExtraVar(name, charFinalCounter);
+}
+
+bool nzStero::checkCounter(const char* name){
+  String sCounter = getExtraVar(name, 6);
+  String fCounter = sCounter.substring(0, 3);
+  String valueCounter = sCounter.substring(3);
+
+  long int lfCounter = fCounter.toInt();
+  long int lvalueCounter = valueCounter.toInt();
+
+  if(lfCounter == lvalueCounter ){
+    return true;
+  }
+  else{
+    return false;
   }
 }
-
-int nzStero::getCounter(const char* name) {
-  const char* sCounter = getExtraVar(name, 6).c_str();
-  int iCounter = atoi(sCounter);
-  return iCounter;
-}
-
-
 
 void nzStero::setExtraVar(String name, const char* value) {
   int address = findVariableAddress(name.c_str());
   if (address != -1) {
-    char valueChar = value;
-    EEPROM.write(address, valueChar);
+    for (int i = 0; i < strlen(value); i++) {
+      EEPROM.write(address + i, value[i]);
+    }
+    EEPROM.write(address + strlen(value), '\0'); // Zakończ znakiem null
   } else {
     String fullName = name + String(value);
     int length = fullName.length();
     for (int i = 0; i < length; i++) {
       EEPROM.write(acAdres + i, fullName.charAt(i));
     }
-    acAdres = acAdres + length;
+    EEPROM.write(acAdres + length, '\0');  // Zakończ znakiem null
+    acAdres += length + 1;                 // Aktualizuj wskaźnik
   }
-  return 0;
 }
+
 
 String nzStero::getExtraVar(const char* name, int length) {
   int address = findVariableAddress(name);
@@ -233,17 +259,17 @@ String nzStero::getExtraVar(const char* name, int length) {
   if (address != -1) {
     for (int i = 0; i < length; i++) {
       char charValue = EEPROM.read(address + i);
-      Serial.print("Odczytano znak na adresie "); 
-      Serial.print(address + i);
-      Serial.print(": ");
-      Serial.println(charValue);
+      // Serial.print("Odczytano znak na adresie ");
+      // Serial.print(address + i);
+      // Serial.print(": ");
+      // Serial.println(charValue);
       finalValue += String(charValue);
     }
-    Serial.print("Odczytana wartość: ");
-    Serial.println(finalValue);
+    // Serial.print("Odczytana wartość: ");
+    // Serial.println(finalValue);
     return finalValue;
   }
-  Serial.println("Zmienna nie znaleziona");
+  // Serial.println("Zmienna nie znaleziona");
   return "-1";
 }
 
