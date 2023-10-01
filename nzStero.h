@@ -18,7 +18,7 @@ public:
   void setMarker(String name, int value);
   int getMarker(const char* name);
   void setCounter(String name, int value);
-  void addToCounter(const char*  name, int value);
+  void addToCounter(const char* name, int value);
   bool checkCounter(const char* name);
   long int getCounter(const char* name);
 
@@ -161,13 +161,14 @@ void nzStero::setMarker(String name, int value) {
     return;
   }
   String stringValue = String(value);
-  
+
   setExtraVar(name, stringValue.c_str());
 }
 int nzStero::getMarker(const char* name) {
   int iMarker = getExtraVar(name, 1).toInt();
   return iMarker;
-}void nzStero::setCounter(String name, int value) {
+}
+void nzStero::setCounter(String name, int value) {
   if (name.length() != 4 || name[0] != 'C' || !isdigit(name[1]) || !isdigit(name[2]) || !isdigit(name[3])) {
     Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu CXYZ, gdzie XYZ to trzy cyfry.");
     return;
@@ -177,23 +178,27 @@ int nzStero::getMarker(const char* name) {
     Serial.println(countMax);
     return;
   }
+ 
   String countFormat = String(value);
+
   int countLength = countFormat.length();
+
   if (countLength < 3) {
     countFormat = String("000").substring(0, 3 - countLength) + countFormat;
   }
+
   countFormat += "000";
-  
+
   setExtraVar(name, countFormat.c_str());
 }
 
 
 long int nzStero::getCounter(const char* name) {
   String sCounter = getExtraVar(name, 6);
-  String gCounter= sCounter.substring(6 - 3);
- 
-  
-  long int lCounter = gCounter.toInt(); // Konwersja na long int
+  String gCounter = sCounter.substring(6 - 3);
+
+
+  long int lCounter = gCounter.toInt();  // Konwersja na long int
 
   return lCounter;
 }
@@ -202,7 +207,7 @@ void nzStero::addToCounter(const char* name, int value) {
   String fCounter = sCounter.substring(0, 3);
   String valueCounter = sCounter.substring(3);
 
-  long int lfCounter = fCounter.toInt();
+  //long int lfCounter = fCounter.toInt();
   long int lvalueCounter = valueCounter.toInt();
 
   lvalueCounter = lvalueCounter + value;
@@ -210,7 +215,7 @@ void nzStero::addToCounter(const char* name, int value) {
   String lvalueCounterString = String(lvalueCounter);
   String countFormat = String("000").substring(0, 3 - lvalueCounterString.length()) + lvalueCounterString;
 
-  String finalCounter = String(lfCounter) + countFormat;
+  String finalCounter = fCounter + countFormat;
 
   const char* charFinalCounter = finalCounter.c_str();
   Serial.println(charFinalCounter);
@@ -218,7 +223,7 @@ void nzStero::addToCounter(const char* name, int value) {
   setExtraVar(name, charFinalCounter);
 }
 
-bool nzStero::checkCounter(const char* name){
+bool nzStero::checkCounter(const char* name) {
   String sCounter = getExtraVar(name, 6);
   String fCounter = sCounter.substring(0, 3);
   String valueCounter = sCounter.substring(3);
@@ -226,10 +231,9 @@ bool nzStero::checkCounter(const char* name){
   long int lfCounter = fCounter.toInt();
   long int lvalueCounter = valueCounter.toInt();
 
-  if(lfCounter == lvalueCounter ){
+  if (lfCounter == lvalueCounter) {
     return true;
-  }
-  else{
+  } else {
     return false;
   }
 }
@@ -240,7 +244,7 @@ void nzStero::setExtraVar(String name, const char* value) {
     for (int i = 0; i < strlen(value); i++) {
       EEPROM.write(address + i, value[i]);
     }
-    EEPROM.write(address + strlen(value), '\0'); // Zakończ znakiem null
+    EEPROM.write(address + strlen(value), '\0');  // Zakończ znakiem null
   } else {
     String fullName = name + String(value);
     int length = fullName.length();
