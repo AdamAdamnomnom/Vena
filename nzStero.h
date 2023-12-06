@@ -7,17 +7,19 @@ class nzStero {
 public:
   nzStero();
   void initialize();
-  int check(int);
+  
+  int check(int, String impuls = ""); // Dodano funkcję z dwoma parametrami
   void out(int, int);
   int check_and(int, int);
   int check_or(int, int);
   int check_nand(int, int);
   int check_nor(int, int);
   int check_xor(int, int);
-  void showInOut(bool, bool);  // inputs , outputs
+  void showInOut(bool, bool);
   void setMarker(String name, int value);
   int getMarker(const char* name);
   void setCounter(String name, int value);
+  void resetCounter(const char* name); // Dodano funkcję resetCounter
   void addToCounter(const char* name, int value);
   bool checkCounter(const char* name);
   long int getCounter(const char* name);
@@ -26,14 +28,21 @@ private:
   void setExtraVar(String name, const char* value);
   String getExtraVar(const char* name, int lenght);
   int findVariableAddress(const char* name);
-  int input[4];
-  int output[4];
-  int outputVal[4];
+  
 
   bool startsWith(const char* phrase, const char* letter);
   static const char* errors[];
   int acAdres = 0;
   int countMax = 999;
+
+   struct Pin {
+    int pinNumber;
+    int value;
+    int previousValue;
+  };
+   Pin input[4];
+  Pin output[4];
+
 };
 
 nzStero::nzStero() {
@@ -51,56 +60,90 @@ void nzStero::initialize() {
     "Bład karty SD",
   };
 
-  input[0] = 17;
-  input[1] = 16;
-  input[2] = 15;
-  input[3] = 20;
 
-  output[0] = 7;
-  output[1] = 6;
-  output[2] = 5;
-  output[3] = 3;
+  input[0] = {17, 0, 0};
+  input[1] = {16, 0, 0};
+  input[2] = {15, 0, 0};
+  input[3] = {20, 0, 0};
 
-  outputVal[0] = 0;
-  outputVal[1] = 0;
-  outputVal[2] = 0;
-  outputVal[3] = 0;
+  output[0] = {7, 0, 0};
+  output[1] = {6, 0, 0};
+  output[2] = {5, 0, 0};
+  output[3] = {3, 0, 0};
 
-  pinMode(input[0], INPUT);
-  pinMode(input[1], INPUT);
-  pinMode(input[2], INPUT);
-  pinMode(input[3], INPUT);
-
-  pinMode(output[0], OUTPUT);
-  pinMode(output[1], OUTPUT);
-  pinMode(output[2], OUTPUT);
-  pinMode(output[3], OUTPUT);
+  for (int i = 0; i < 4; i++) {
+    pinMode(input[i].pinNumber, INPUT);
+    pinMode(output[i].pinNumber, OUTPUT);
+  }
 
   for (int i = 0; i < EEPROM.length(); i++) {
     EEPROM.write(i, NULL);
   }
 }
 
-int nzStero::check(int index) {
+int nzStero::check(int index, String impuls = "") {
   if (index >= 0 && index < 4) {
-    if (analogRead(input[index]) > 900) {
-      return 1;
+    int actualValueIn = digitalRead(input[index].pinNumber);
+    int lastValueIn = input[index].previousValue;
+    unsigned long debounceDelay = 0; // Debounce delay time in milliseconds
+
+    if (impuls.equals("impuls")) {
+      if (actualValueIn != lastValueIn) {
+        delay(debounceDelay);
+        actualValueIn = digitalRead(input[index].pinNumber);
+
+        if (actualValueIn == 1 && lastValueIn == 0) {
+          input[index].previousValue = 1;
+          Serial.println("New impulse detected");
+          return 1;
+        } else if (actualValueIn == 0 && lastValueIn == 1) {
+          input[index].previousValue = 0;
+          return 0;
+        }
+      } else if (actualValueIn == 0 && lastValueIn == 0) { // Poprawione umiejscowienie warunku
+        return 0;
+      } else if (actualValueIn == 1 && lastValueIn == 1){
+        return 0;
+      }
     } else {
-      return 0;
+      if (actualValueIn == 1) {
+        return 1;
+      } else {
+        return 0;
+      }
     }
   }
-  return -1;
+  return -1; // Default return value indicating an error
 }
-
-void nzStero::out(int index, int val) {
+void nzStero::out(int index, bool val, int time) {
   if (val == HIGH || val == LOW) {
     if (index >= 0 && index < 4) {
-      if (val == 1) {
-        analogWrite(output[index], 255);
+      if (val == HIGH) {
+        analogWrite(output[index].pinNumber, 255);
       } else {
-        analogWrite(output[index], 0);
+        analogWrite(output[index].pinNumber, 0);
       }
-      outputVal[index] = val;
+      output[index].value = val;
+      Serial.println(output[index].value);
+
+      if (time > 0) { // Jeśli time jest większe od zera, stosujemy opóźnienie
+        Serial.println("Using time");
+        output[index].previousValue = !val; // Ustawienie poprzedniej wartości
+
+        unsigned long startTime = millis(); // Zapisujemy czas rozpoczęcia
+
+        while (millis() - startTime < time) {
+          // Czekamy, aż upłynie określony czas
+          // Tutaj możesz dodać dodatkowe operacje, jeśli potrzebujesz
+          //Serial.println("Waiting");
+        }
+
+        // Po upływie czasu zmieniamy stan na poprzedni
+        analogWrite(output[index].pinNumber, output[index].previousValue ? 255 : 0);
+        output[index].value = output[index].previousValue;
+        Serial.println("Changing output");
+        Serial.println(output[index].value);
+      }
     } else {
       Serial.println("Error: Invalid output index");
     }
@@ -108,7 +151,6 @@ void nzStero::out(int index, int val) {
     Serial.println("Error: Invalid value");
   }
 }
-
 int nzStero::check_and(int x, int y) {
   if (check(x) == HIGH && check(y) == HIGH) {
     return HIGH;
@@ -151,6 +193,7 @@ bool nzStero::startsWith(const char* phrase, const char* letter) {
   return (phrase[0] == letter);
 }
 
+
 void nzStero::setMarker(String name, int value) {
   if (name.length() != 4 || name[0] != 'M' || !isdigit(name[1]) || !isdigit(name[2]) || !isdigit(name[3])) {
     Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu MXYZ, gdzie XYZ to trzy cyfry.");
@@ -164,10 +207,12 @@ void nzStero::setMarker(String name, int value) {
 
   setExtraVar(name, stringValue.c_str());
 }
+
 int nzStero::getMarker(const char* name) {
   int iMarker = getExtraVar(name, 1).toInt();
   return iMarker;
 }
+
 void nzStero::setCounter(String name, int value) {
   if (name.length() != 4 || name[0] != 'C' || !isdigit(name[1]) || !isdigit(name[2]) || !isdigit(name[3])) {
     Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu CXYZ, gdzie XYZ to trzy cyfry.");
@@ -178,7 +223,7 @@ void nzStero::setCounter(String name, int value) {
     Serial.println(countMax);
     return;
   }
- 
+
   String countFormat = String(value);
 
   int countLength = countFormat.length();
@@ -192,7 +237,6 @@ void nzStero::setCounter(String name, int value) {
   setExtraVar(name, countFormat.c_str());
 }
 
-
 long int nzStero::getCounter(const char* name) {
   String sCounter = getExtraVar(name, 6);
   String gCounter = sCounter.substring(6 - 3);
@@ -202,6 +246,7 @@ long int nzStero::getCounter(const char* name) {
 
   return lCounter;
 }
+
 void nzStero::addToCounter(const char* name, int value) {
   String sCounter = getExtraVar(name, 6);
   String fCounter = sCounter.substring(0, 3);
@@ -238,6 +283,23 @@ bool nzStero::checkCounter(const char* name) {
   }
 }
 
+void nzStero::resetCounter(const char* name){
+  String sCounter = getExtraVar(name, 6);
+  String fCounter = sCounter.substring(0, 3);
+
+
+  String lvalueCounterString = "000";
+  String countFormat = String("000").substring(0, 3 - lvalueCounterString.length()) + lvalueCounterString;
+
+  String finalCounter = fCounter + countFormat;
+
+  const char* charFinalCounter = finalCounter.c_str();
+  Serial.println(charFinalCounter);
+
+  setExtraVar(name, charFinalCounter);
+
+}
+
 void nzStero::setExtraVar(String name, const char* value) {
   int address = findVariableAddress(name.c_str());
   if (address != -1) {
@@ -255,7 +317,6 @@ void nzStero::setExtraVar(String name, const char* value) {
     acAdres += length + 1;                 // Aktualizuj wskaźnik
   }
 }
-
 
 String nzStero::getExtraVar(const char* name, int length) {
   int address = findVariableAddress(name);
@@ -294,28 +355,23 @@ int nzStero::findVariableAddress(const char* name) {
   return -1;
 }
 
-void nzStero::showInOut(bool input, bool output) {
-  if (input == 1) {
+void nzStero::showInOut(bool inputs, bool outputs) {
+  if (inputs == 1) {
     Serial.print("Inputs: ");
-    Serial.print(check(0));
-    Serial.print(" ");
-    Serial.print(check(1));
-    Serial.print(" ");
-    Serial.print(check(2));
-    Serial.print(" ");
-    Serial.print(check(3));
-    Serial.print(" ");
+    for (int i = 0 ; i < 4; i++){
+      input[i].value = check(i);
+      Serial.print(this->input[i].value);
+      Serial.print(" ");
+    }
   }
-  if (output == 1) {
+  Serial.println(" ");
+  if (outputs == 1) {
     Serial.print("Outputs: ");
-    Serial.print(outputVal[0]);
-    Serial.print(" ");
-    Serial.print(outputVal[1]);
-    Serial.print(" ");
-    Serial.print(outputVal[2]);
-    Serial.print(" ");
-    Serial.print(outputVal[3]);
-    Serial.print(" ");
+    for (int j = 0 ; j < 4; j++){
+      Serial.print(this->output[j].value);
+      Serial.print(" ");
+    }
+    Serial.println(" ");
   }
   Serial.println(" ");
 }
