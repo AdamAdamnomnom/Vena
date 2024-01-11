@@ -81,6 +81,29 @@ void nzStero::initialize() {
   }
 }
 
+void nzStero::startTimer(String name, int time){
+   if (name.length() != 2 || name[0] != 'T' || !isdigit(name[1]) ) {
+    Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu TX, gdzie X to cyfra.");
+    return;
+  }
+  if (time <0 ) {
+    Serial.println("Błędna wartość. Oczekiwana wieksza od zera");
+    return;
+  }
+
+  String stringValue = String(time)+ "C"+String(millis());
+  Serial.println(millis());
+  setExtraVar(name, stringValue.c_str());
+}
+
+
+
+bool nzStero::checkTimer(const char* name) {
+  int iTimer = getExtraVar(name, 1).toInt();
+  Serial.println(iTimer);
+  return 1;
+}
+
 int nzStero::check(int index, String impuls = "") {
   if (index >= 0 && index < 4) {
     int actualValueIn = digitalRead(input[index].pinNumber);
