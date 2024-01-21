@@ -1,15 +1,17 @@
 #include "Arduino.h"
 #include <EEPROM.h>
 
-const int EEPROM_SIZE = 1024;
 
+const int EEPROM_SIZE = 1024;
+const int MAX_TIMER = 10;
+int numberOfTimers = 0;
 class nzStero {
 public:
   nzStero();
   void initialize();
-  
-  int check(int, String impuls = ""); // Dodano funkcję z dwoma parametrami
-  void out(int, int);
+
+  int check(int, String impuls = "");  // Dodano funkcję z dwoma parametrami
+  void out(int index, bool val, int time);
   int check_and(int, int);
   int check_or(int, int);
   int check_nand(int, int);
@@ -19,35 +21,54 @@ public:
   void setMarker(String name, int value);
   int getMarker(const char* name);
   void setCounter(String name, int value);
-  void resetCounter(const char* name); // Dodano funkcję resetCounter
+  void resetCounter(const char* name);  // Dodano funkcję resetCounter
   void addToCounter(const char* name, int value);
   bool checkCounter(const char* name);
   long int getCounter(const char* name);
-
+  void startTimer(String name, unsigned long duration);
+  bool checkTimer(String name, unsigned long duration = 0);
+  void stopFunction();
 private:
   void setExtraVar(String name, const char* value);
   String getExtraVar(const char* name, int lenght);
   int findVariableAddress(const char* name);
-  
-
   bool startsWith(const char* phrase, const char* letter);
   static const char* errors[];
+
   int acAdres = 0;
   int countMax = 999;
-
-   struct Pin {
+  static nzStero* instance;
+  struct Pin {
     int pinNumber;
     int value;
     int previousValue;
   };
-   Pin input[4];
+  Pin input[4];
   Pin output[4];
+  struct Timer {
+    String name;
+    unsigned long startTime;
+    unsigned long duration;
+    bool active;
+  };
+  static void handleInterrupt() {
+    if (instance != NULL) {
+      instance->stopFunction();  // Wywołanie funkcji stop z instancji obiektu
+    }
+  }
+  void stop() {
+    // Tutaj możesz umieścić kod, który ma być wykonany po wystąpieniu przerwania
+    // Na przykład zatrzymanie programu lub inne działania
+  }
 
+  Timer timers[10];
 };
 
-nzStero::nzStero() {
-}
+nzStero* nzStero::instance = NULL;
 
+nzStero::nzStero() {
+  instance = this;
+}
 void nzStero::initialize() {
   const char* errors[] = {
     "Bez błędu",
@@ -60,16 +81,16 @@ void nzStero::initialize() {
     "Bład karty SD",
   };
 
+  stopFunction();
+  input[0] = { 2, 0, 0 };
+  input[1] = { 16, 0, 0 };
+  input[2] = { 15, 0, 0 };
+  input[3] = { 20, 0, 0 };
 
-  input[0] = {17, 0, 0};
-  input[1] = {16, 0, 0};
-  input[2] = {15, 0, 0};
-  input[3] = {20, 0, 0};
-
-  output[0] = {7, 0, 0};
-  output[1] = {6, 0, 0};
-  output[2] = {5, 0, 0};
-  output[3] = {3, 0, 0};
+  output[0] = { 7, 0, 0 };
+  output[1] = { 6, 0, 0 };
+  output[2] = { 5, 0, 0 };
+  output[3] = { 3, 0, 0 };
 
   for (int i = 0; i < 4; i++) {
     pinMode(input[i].pinNumber, INPUT);
@@ -81,34 +102,17 @@ void nzStero::initialize() {
   }
 }
 
-void nzStero::startTimer(String name, int time){
-   if (name.length() != 2 || name[0] != 'T' || !isdigit(name[1]) ) {
-    Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu TX, gdzie X to cyfra.");
-    return;
-  }
-  if (time <0 ) {
-    Serial.println("Błędna wartość. Oczekiwana wieksza od zera");
-    return;
-  }
+void nzStero::stopFunction() {
 
-  String stringValue = String(time)+ "C"+String(millis());
-  Serial.println(millis());
-  setExtraVar(name, stringValue.c_str());
+  attachInterrupt(digitalPinToInterrupt(2), handleInterrupt, FALLING);
 }
 
-
-
-bool nzStero::checkTimer(const char* name) {
-  int iTimer = getExtraVar(name, 1).toInt();
-  Serial.println(iTimer);
-  return 1;
-}
 
 int nzStero::check(int index, String impuls = "") {
   if (index >= 0 && index < 4) {
     int actualValueIn = digitalRead(input[index].pinNumber);
     int lastValueIn = input[index].previousValue;
-    unsigned long debounceDelay = 0; // Debounce delay time in milliseconds
+    unsigned long debounceDelay = 0;  // Debounce delay time in milliseconds
 
     if (impuls.equals("impuls")) {
       if (actualValueIn != lastValueIn) {
@@ -123,9 +127,9 @@ int nzStero::check(int index, String impuls = "") {
           input[index].previousValue = 0;
           return 0;
         }
-      } else if (actualValueIn == 0 && lastValueIn == 0) { // Poprawione umiejscowienie warunku
+      } else if (actualValueIn == 0 && lastValueIn == 0) {  // Poprawione umiejscowienie warunku
         return 0;
-      } else if (actualValueIn == 1 && lastValueIn == 1){
+      } else if (actualValueIn == 1 && lastValueIn == 1) {
         return 0;
       }
     } else {
@@ -136,7 +140,7 @@ int nzStero::check(int index, String impuls = "") {
       }
     }
   }
-  return -1; // Default return value indicating an error
+  return -1;  // Default return value indicating an error
 }
 void nzStero::out(int index, bool val, int time) {
   if (val == HIGH || val == LOW) {
@@ -149,11 +153,11 @@ void nzStero::out(int index, bool val, int time) {
       output[index].value = val;
       Serial.println(output[index].value);
 
-      if (time > 0) { // Jeśli time jest większe od zera, stosujemy opóźnienie
+      if (time > 0) {  // Jeśli time jest większe od zera, stosujemy opóźnienie
         Serial.println("Using time");
-        output[index].previousValue = !val; // Ustawienie poprzedniej wartości
+        output[index].previousValue = !val;  // Ustawienie poprzedniej wartości
 
-        unsigned long startTime = millis(); // Zapisujemy czas rozpoczęcia
+        unsigned long startTime = millis();  // Zapisujemy czas rozpoczęcia
 
         while (millis() - startTime < time) {
           // Czekamy, aż upłynie określony czas
@@ -306,7 +310,7 @@ bool nzStero::checkCounter(const char* name) {
   }
 }
 
-void nzStero::resetCounter(const char* name){
+void nzStero::resetCounter(const char* name) {
   String sCounter = getExtraVar(name, 6);
   String fCounter = sCounter.substring(0, 3);
 
@@ -320,8 +324,47 @@ void nzStero::resetCounter(const char* name){
   Serial.println(charFinalCounter);
 
   setExtraVar(name, charFinalCounter);
-
 }
+
+
+void nzStero::startTimer(String name, unsigned long duration) {
+  if (numberOfTimers < MAX_TIMER) {
+    timers[numberOfTimers].name = name;
+    timers[numberOfTimers].startTime = millis();
+    timers[numberOfTimers].duration = duration;
+    timers[numberOfTimers].active = true;
+    numberOfTimers++;
+  } else {
+    Serial.println("Osiągnięto maksymalną liczbę timerów. Nie można dodać kolejnego.");
+  }
+}
+
+bool nzStero::checkTimer(String name, unsigned long duration = 0) {
+  for (int i = 0; i < numberOfTimers; ++i) {
+    if (timers[i].name == name) {
+      if (duration == 0) {
+        if (timers[i].active && (millis() - timers[i].startTime >= timers[i].duration)) {
+          timers[i].active = false;
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        if (timers[i].active && (millis() - timers[i].startTime >= duration)) {
+          timers[i].active = false;
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+  }
+  Serial.println("Nie znaleziono timera o nazwie: " + name);
+  return false;
+}
+
+
+
 
 void nzStero::setExtraVar(String name, const char* value) {
   int address = findVariableAddress(name.c_str());
@@ -381,7 +424,7 @@ int nzStero::findVariableAddress(const char* name) {
 void nzStero::showInOut(bool inputs, bool outputs) {
   if (inputs == 1) {
     Serial.print("Inputs: ");
-    for (int i = 0 ; i < 4; i++){
+    for (int i = 0; i < 4; i++) {
       input[i].value = check(i);
       Serial.print(this->input[i].value);
       Serial.print(" ");
@@ -390,7 +433,7 @@ void nzStero::showInOut(bool inputs, bool outputs) {
   Serial.println(" ");
   if (outputs == 1) {
     Serial.print("Outputs: ");
-    for (int j = 0 ; j < 4; j++){
+    for (int j = 0; j < 4; j++) {
       Serial.print(this->output[j].value);
       Serial.print(" ");
     }
