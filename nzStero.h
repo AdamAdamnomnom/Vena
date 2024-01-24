@@ -10,7 +10,7 @@ public:
   nzStero();
   void initialize();
 
-  int check(int, String impuls = "");  // Dodano funkcję z dwoma parametrami
+ int check(int index, String impuls);
   void out(int index, bool val, int time);
   int check_and(int, int);
   int check_or(int, int);
@@ -21,18 +21,19 @@ public:
   void setMarker(String name, int value);
   int getMarker(const char* name);
   void setCounter(String name, int value);
-  void resetCounter(const char* name);  // Dodano funkcję resetCounter
+  void resetCounter(const char* name);
   void addToCounter(const char* name, int value);
   bool checkCounter(const char* name);
   long int getCounter(const char* name);
   void startTimer(String name, unsigned long duration);
-  bool checkTimer(String name, unsigned long duration = 0);
+bool checkTimer(String name, unsigned long duration);
   void stopFunction();
+
 private:
-  void setExtraVar(String name, const char* value);
-  String getExtraVar(const char* name, int lenght);
+ void setExtraVar(String name, const char* value);
+  String getExtraVar(const char* name, int length);
   int findVariableAddress(const char* name);
-  bool startsWith(const char* phrase, const char* letter);
+  bool startsWith(const char* phrase, const char letter);
   static const char* errors[];
 
   int acAdres = 0;
@@ -53,7 +54,7 @@ private:
   };
   static void handleInterrupt() {
     if (instance != NULL) {
-      instance->stopFunction();  // Wywołanie funkcji stop z instancji obiektu
+      instance->stopFunction();
     }
   }
   void stop() {
@@ -81,16 +82,16 @@ void nzStero::initialize() {
     "Bład karty SD",
   };
 
-  stopFunction();
-  input[0] = { 2, 0, 0 };
-  input[1] = { 16, 0, 0 };
-  input[2] = { 15, 0, 0 };
-  input[3] = { 20, 0, 0 };
+   stopFunction();
+  input[0] = { D4, 0, 0 };
+  input[1] = { D2, 0, 0 };
+  input[2] = { D1, 0, 0 };
+  input[3] = { D5, 0, 0 };
 
-  output[0] = { 7, 0, 0 };
-  output[1] = { 6, 0, 0 };
-  output[2] = { 5, 0, 0 };
-  output[3] = { 3, 0, 0 };
+  output[0] = { D7, 0, 0 };
+  output[1] = { D6, 0, 0 };
+  output[2] = { D5, 0, 0 };
+  output[3] = { D3, 0, 0 };
 
   for (int i = 0; i < 4; i++) {
     pinMode(input[i].pinNumber, INPUT);
@@ -98,78 +99,63 @@ void nzStero::initialize() {
   }
 
   for (int i = 0; i < EEPROM.length(); i++) {
-    EEPROM.write(i, NULL);
+    EEPROM.write(i, 0); // Zmiana NULL na 0
   }
 }
 
 void nzStero::stopFunction() {
 
-  attachInterrupt(digitalPinToInterrupt(2), handleInterrupt, FALLING);
+  attachInterrupt(digitalPinToInterrupt(D2), handleInterrupt, FALLING);
 }
 
-
-int nzStero::check(int index, String impuls = "") {
+int nzStero::check(int index, String impuls = ""){
   if (index >= 0 && index < 4) {
     int actualValueIn = digitalRead(input[index].pinNumber);
     int lastValueIn = input[index].previousValue;
-    unsigned long debounceDelay = 0;  // Debounce delay time in milliseconds
+    unsigned long debounceDelay = 0;
 
     if (impuls.equals("impuls")) {
       if (actualValueIn != lastValueIn) {
         delay(debounceDelay);
         actualValueIn = digitalRead(input[index].pinNumber);
 
-        if (actualValueIn == 1 && lastValueIn == 0) {
-          input[index].previousValue = 1;
+        if (actualValueIn == HIGH && lastValueIn == LOW) {
+          input[index].previousValue = HIGH;
           Serial.println("New impulse detected");
-          return 1;
-        } else if (actualValueIn == 0 && lastValueIn == 1) {
-          input[index].previousValue = 0;
-          return 0;
+          return HIGH;
+        } else if (actualValueIn == LOW && lastValueIn == HIGH) {
+          input[index].previousValue = LOW;
+          return LOW;
         }
-      } else if (actualValueIn == 0 && lastValueIn == 0) {  // Poprawione umiejscowienie warunku
-        return 0;
-      } else if (actualValueIn == 1 && lastValueIn == 1) {
-        return 0;
+      } else if (actualValueIn == LOW && lastValueIn == LOW) {
+        return LOW;
+      } else if (actualValueIn == HIGH && lastValueIn == HIGH) {
+        return LOW;
       }
     } else {
-      if (actualValueIn == 1) {
-        return 1;
-      } else {
-        return 0;
-      }
+      return actualValueIn;
     }
   }
-  return -1;  // Default return value indicating an error
+  return -1;
 }
+
 void nzStero::out(int index, bool val, int time) {
   if (val == HIGH || val == LOW) {
     if (index >= 0 && index < 4) {
-      if (val == HIGH) {
-        analogWrite(output[index].pinNumber, 255);
-      } else {
-        analogWrite(output[index].pinNumber, 0);
-      }
+      analogWrite(output[index].pinNumber, val ? 255 : 0);
       output[index].value = val;
-      Serial.println(output[index].value);
 
-      if (time > 0) {  // Jeśli time jest większe od zera, stosujemy opóźnienie
-        Serial.println("Using time");
-        output[index].previousValue = !val;  // Ustawienie poprzedniej wartości
+      if (time > 0) {
+        output[index].previousValue = !val;
 
-        unsigned long startTime = millis();  // Zapisujemy czas rozpoczęcia
+        unsigned long startTime = millis();
 
         while (millis() - startTime < time) {
           // Czekamy, aż upłynie określony czas
-          // Tutaj możesz dodać dodatkowe operacje, jeśli potrzebujesz
-          //Serial.println("Waiting");
         }
 
-        // Po upływie czasu zmieniamy stan na poprzedni
         analogWrite(output[index].pinNumber, output[index].previousValue ? 255 : 0);
         output[index].value = output[index].previousValue;
-        Serial.println("Changing output");
-        Serial.println(output[index].value);
       }
     } else {
       Serial.println("Error: Invalid output index");
@@ -178,6 +164,7 @@ void nzStero::out(int index, bool val, int time) {
     Serial.println("Error: Invalid value");
   }
 }
+
 int nzStero::check_and(int x, int y) {
   if (check(x) == HIGH && check(y) == HIGH) {
     return HIGH;
@@ -216,8 +203,8 @@ int nzStero::check_xor(int x, int y) {
   return LOW;
 }
 
-bool nzStero::startsWith(const char* phrase, const char* letter) {
-  return (phrase[0] == letter);
+bool nzStero::startsWith(const char* phrase, const char letter) {
+  return (*phrase == letter);
 }
 
 
