@@ -1,0 +1,111 @@
+/* Dokumentacja */
+
+ Nazwa Funkcji: initialize
+ Parametry Wejściowe: Brak
+ Wartość Zwracana: Brak
+ Opis: Inicjalizuje obiekt vena poprzez ustawienie pinów wejściowych i wyjściowych, inicjalizację EEPROM, konfigurację obsługi przerwań oraz inicjalizację komunikacji szeregowej. Wymagane do działana.
+
+ Nazwa Funkcji: check
+ Parametry Wejściowe: int index - indeks pinu wejściowego do sprawdzenia, String impuls (opcjonalne) - określa czy wejście ma być sprawdzane pod kątem impulsów
+ Wartość Zwracana: int - zwraca 1, jeśli wykryto nowy impuls, 0 w przeciwnym przypadku, -1 w przypadku błędu
+ Opis: Sprawdza stan określonego pinu wejściowego. Jeśli 'impuls' jest ustawiony na "impuls", wykrywa nowy impuls.
+
+ Nazwa Funkcji: out
+ Parametry Wejściowe: int index - indeks pinu wyjściowego, bool val - wartość do zapisania na pinie wyjściowym, unsigned long duration (opcjonalne) - czas trwania, przez który pin ma być ustawiony
+ Wartość Zwracana: Brak
+ Opis: Ustawia określony pin wyjściowy na określoną wartość. Jeśli podano duration, pin jest ustawiony na tę wartość przez określony czas.
+
+ Nazwa Funkcji: generateImpulse
+ Parametry Wejściowe: String name - nazwa generatora impulsów, unsigned long czas1 - czas trwania, przez który impuls ma być wysoki, unsigned long czas2 - czas trwania, przez który impuls ma być niski, bool warunek - warunek generowania impulsu
+ Wartość Zwracana: bool - zwraca true, jeśli impuls jest generowany, false w przeciwnym przypadku
+ Opis: Generuje impuls na podstawie określonych warunków i długości.
+
+ Nazwa Funkcji: check_and
+ Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji AND
+ Wartość Zwracana: int - wynik operacji AND
+ Opis: Wykonuje operację logicznego AND na stanach dwóch pinów wejściowych.
+
+ Nazwa Funkcji: check_or
+ Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji OR
+ Wartość Zwracana: int - wynik operacji OR
+ Opis: Wykonuje operację logicznego OR na stanach dwóch pinów wejściowych.
+
+ Nazwa Funkcji: check_nand
+ Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji NAND
+ Wartość Zwracana: int - wynik operacji NAND
+ Opis: Wykonuje operację logicznego NAND na stanach dwóch pinów wejściowych.
+
+ Nazwa Funkcji: check_nor
+ Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji NOR
+ Wartość Zwracana: int - wynik operacji NOR
+ Opis: Wykonuje operację logicznego NOR na stanach dwóch pinów wejściowych.
+
+ Nazwa Funkcji: check_xor
+ Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji XOR
+ Wartość Zwracana: int - wynik operacji XOR
+ Opis: Wykonuje operację logicznego XOR na stanach dwóch pinów wejściowych.
+
+ Nazwa Funkcji: setMarker
+ Parametry Wejściowe: String name - nazwa markera, int value - wartość do ustawienia dla markera
+ Wartość Zwracana: Brak
+ Opis: Ustawia wartość określonego markera.
+
+ Nazwa Funkcji: getMarker
+ Parametry Wejściowe: const char* name - nazwa markera
+ Wartość Zwracana: int - wartość określonego markera
+ Opis: Pobiera wartość określonego markera.
+
+ Nazwa Funkcji: setCounter
+ Parametry Wejściowe: String name - nazwa licznika, int value - wartość do ustawienia dla licznika
+ Wartość Zwracana: Brak
+ Opis: Ustawia wartość określonego licznika.
+
+ Nazwa Funkcji: getCounter
+ Parametry Wejściowe: const char* name - nazwa licznika
+ Wartość Zwracana: long int - wartość określonego licznika
+ Opis: Pobiera wartość określonego licznika.
+
+ Nazwa Funkcji: addToCounter
+ Parametry Wejściowe: const char* name - nazwa licznika, int value - wartość do dodania do licznika
+ Wartość Zwracana: Brak
+ Opis: Dodaje określoną wartość do określonego licznika.
+
+ Nazwa Funkcji: checkCounter
+ Parametry Wejściowe: const char* name - nazwa licznika
+ Wartość Zwracana: bool - zwraca true, jeśli licznik zgadza się z jego wartością, false w przeciwnym przypadku
+ Opis: Sprawdza, czy licznik zgadza się z jego wartością.
+
+ Nazwa Funkcji: resetCounter
+ Parametry Wejściowe: const char* name - nazwa licznika
+ Wartość Zwracana: Brak
+ Opis: Resetuje określony licznik.
+
+ Nazwa Funkcji: startTimer
+ Parametry Wejściowe: String name - nazwa timera, unsigned long duration - czas trwania timera
+ Wartość Zwracana: Brak
+ Opis: Rozpoczyna odliczanie timera o określonym czasie trwania.
+
+ Nazwa Funkcji: checkTimer
+ Parametry Wejściowe: String name - nazwa timera, unsigned long duration (opcjonalne) - określa alternatywny czas trwania
+ Wartość Zwracana: bool - zwraca true, jeśli timer został zakończony, false w przeciwnym przypadku
+ Opis: Sprawdza, czy timer o określonej nazwie został zakończony lub sprawdza czy okreslony czas minoł.
+
+ Nazwa Funkcji: showInOut
+ Parametry Wejściowe: bool inputs - określa czy wyświetlić stany pinów wejściowych, bool outputs - określa czy wyświetlić stany pinów wyjściowych
+ Wartość Zwracana: Brak
+ Opis: Wyświetla stany pinów wejściowych i/lub wyjściowych na porcei szeregowym.
+
+ Nazwa Funkcji: sendMsg
+ Parametry Wejściowe: const char* message - wiadomość do wysłania
+ Wartość Zwracana: Brak
+ Opis: Wysyła wiadomość przez komunikację szeregową do drugiego podłaczonego sterownika.
+
+ Nazwa Funkcji: readMsg
+ Parametry Wejściowe: Brak
+ Wartość Zwracana: String - odczytana wiadomość
+ Opis: Odczytuje wiadomość z komunikacji szeregowej od drugiego podłaczonego sterownika.
+
+ Nazwa Funkcji: reset
+ Parametry Wejściowe: Brak
+ Wartość Zwracana: Brak
+ Opis: Resetuje sterownik.
