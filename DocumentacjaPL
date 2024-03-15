@@ -20,30 +20,40 @@
  Wartość Zwracana: bool - zwraca true, jeśli impuls jest generowany, false w przeciwnym przypadku
  Opis: Generuje impuls na podstawie określonych warunków i długości.
 
- Nazwa Funkcji: check_and
- Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji AND
- Wartość Zwracana: int - wynik operacji AND
- Opis: Wykonuje operację logicznego AND na stanach dwóch pinów wejściowych.
-
- Nazwa Funkcji: check_or
- Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji OR
- Wartość Zwracana: int - wynik operacji OR
- Opis: Wykonuje operację logicznego OR na stanach dwóch pinów wejściowych.
-
- Nazwa Funkcji: check_nand
- Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji NAND
- Wartość Zwracana: int - wynik operacji NAND
- Opis: Wykonuje operację logicznego NAND na stanach dwóch pinów wejściowych.
-
- Nazwa Funkcji: check_nor
- Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji NOR
- Wartość Zwracana: int - wynik operacji NOR
- Opis: Wykonuje operację logicznego NOR na stanach dwóch pinów wejściowych.
-
- Nazwa Funkcji: check_xor
- Parametry Wejściowe: int x, int y - indeksy pinów wejściowych do wykonania operacji XOR
- Wartość Zwracana: int - wynik operacji XOR
- Opis: Wykonuje operację logicznego XOR na stanach dwóch pinów wejściowych.
+ Nazwa Funkcji: l_and
+ Parametry Wejściowe: bool x - pierwszy operand, bool y - drugi operand
+ Wartość Zwracana: bool - wynik operacji logicznego AND
+ Opis: Wykonuje operację logicznego AND na dwóch operandach x i y. Zwraca true, jeśli oba operandy są true, w przeciwnym razie zwraca false.
+ 
+ Nazwa Funkcji: l_or
+ Parametry Wejściowe: bool x - pierwszy operand, bool y - drugi operand
+ Wartość Zwracana: bool - wynik operacji logicznego OR
+ Opis: Wykonuje operację logicznego OR na dwóch operandach x i y. Zwraca true, jeśli przynajmniej jeden z operandów jest true, w przeciwnym razie zwraca false.
+ 
+ Nazwa Funkcji: l_nand
+ Parametry Wejściowe: bool x - pierwszy operand, bool y - drugi operand
+ Wartość Zwracana: bool - wynik operacji logicznego NAND
+ Opis: Wykonuje operację logicznego NAND na dwóch operandach x i y. Zwraca false, jeśli oba operandy są true, w przeciwnym razie zwraca true.
+ 
+ Nazwa Funkcji: l_nor
+ Parametry Wejściowe: bool x - pierwszy operand, bool y - drugi operand
+ Wartość Zwracana: bool - wynik operacji logicznego NOR
+ Opis: Wykonuje operację logicznego NOR na dwóch operandach x i y. Zwraca true, jeśli oba operandy są false, w przeciwnym razie zwraca false.
+ 
+ Nazwa Funkcji: l_xor
+ Parametry Wejściowe: bool x - pierwszy operand, bool y - drugi operand
+ Wartość Zwracana: bool - wynik operacji logicznego XOR
+ Opis: Wykonuje operację logicznego XOR na dwóch operandach x i y. Zwraca true, jeśli operandy są różne, w przeciwnym razie zwraca false.
+ 
+ Nazwa Funkcji: l_xnor
+ Parametry Wejściowe: bool x - pierwszy operand, bool y - drugi operand
+ Wartość Zwracana: bool - wynik operacji logicznego XNOR
+ Opis: Wykonuje operację logicznego XNOR na dwóch operandach x i y. Zwraca true, jeśli operandy są takie same, w przeciwnym razie zwraca false.
+ 
+ Nazwa Funkcji: l_not
+ Parametry Wejściowe: bool x - operand
+ Wartość Zwracana: bool - wynik operacji logicznego NOT
+ Opis: Wykonuje operację logicznego NOT na operandzie x. Zwraca true, jeśli operand x jest false, w przeciwnym razie zwraca ture.
 
  Nazwa Funkcji: setMarker
  Parametry Wejściowe: String name - nazwa markera, int value - wartość do ustawienia dla markera
