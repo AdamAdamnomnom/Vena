@@ -1,0 +1,29 @@
+Vena-opis
+
+Sterownik PLC (Programmable Logic Controller) jest to specjalizowany komputer przemysłowy 
+wykorzystywany do sterowania procesami w automatyzacji przemysłowej. Nasz jest zbudowany 
+na bazie mikrokontrolera ATmega328 oraz ESP8266MOD, a do jego programowania używa się 
+języka C++ w środowisku Arduino IDE.
+
+Sterowniki PLC znajdują szerokie zastosowanie w przemyśle, umożliwiając automatyzację 
+procesów produkcyjnych, monitorowanie oraz sterowanie maszynami i urządzeniami. Ich 
+wszechstronne funkcje pozwalają na dostosowanie do różnorodnych potrzeb i wymagań produkcji, 
+co przyczynia się do zwiększenia wydajności i bezpieczeństwa w zakładach przemysłowych.
+
+Stworzona przez nas biblioteka umożliwia prostą i skuteczną programację tego sterownika, 
+zapewniając niezbędne funkcje takie jak sprawdzanie stanu wejść oraz sterowanie wyjściami.
+Dodatkowo zaimplementowane zostały komendy znane z programowania sterowników PLC, takie jak 
+markery, funkcje logiczne czy generator impulsów. Dzięki wykorzystaniu języka programowania 
+C++ użytkownik ma szerokie możliwości korzystania z gotowych rozwiązań lub tworzenia własnych
+funkcji, ograniczony jedynie przez znajomość tego języka. Wnaszym projekcie wykorzystalsim porgramoanie 
+obiektowe, struktuty, eerpom oraz komunkacje szeregową.
+
+Zaletą tego podejścia jest to, że nie wymaga ono uczenia się wielu nowych koncepcji programistycznych
+ - każda osoba, która ukończyła szkołę podstawową, powinna być w stanie zaprogramować nasz sterownik przy
+ użyciu swoje wiedzy i gotowych komend. Dodatkowo, nauka podstawowych komend potrzebnych do programowania
+ naszego sterownika nie zajmie więcej niż kilka tygodni dla osoby, która nigdy nie miała do czynienia 
+z programowaniem w C++.
+
+Dokumentacja przygotowana dla użytkowników zawiera wyjaśnienie każdej funkcji, opisując warunki jej użycia,
+ działanie oraz zwracane wartości. W implementacji biblioteki wykorzystaliśmy  programowanie obiektowe,
+ co pozwoliło na tworzenie niezawodnego oprogramowania, eliminując opóźnienia i zapobiegając potencjalnym niebezpieczeństwom.
