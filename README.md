@@ -1,2 +1,2 @@
-# NzStero
-Readme cos tam damy
+# Vena
+Zapoznaj sie z opisem i dokumentacja naszego sterownika plc
