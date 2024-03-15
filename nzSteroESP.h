@@ -17,11 +17,13 @@ public:
 
   int check(int index, String impuls = "");
    void out(int index, bool val, unsigned long duration  = 0);
-  int check_and(int, int);
-  int check_or(int, int);
-  int check_nand(int, int);
-  int check_nor(int, int);
-  int check_xor(int, int);
+ bool l_and(bool, bool);
+  bool l_or(bool, bool);
+  bool l_nand(bool, bool);
+  bool l_nor(bool,bool);
+  bool l_xor(bool,bool);
+  bool l_xnor(bool,bool);
+  bool l_not(bool);
   void showInOut(bool, bool);
   void setMarker(String name, int value);
   int getMarker(const char* name);
@@ -241,44 +243,33 @@ bool nzStero::generateImpulse(String name, unsigned long czas1, unsigned long cz
   return false;
 }
 
-int nzStero::check_and(int x, int y) {
-  if (check(x) == HIGH && check(y) == HIGH) {
-    return HIGH;
-  }
-  return LOW;
+bool nzStero::l_and(bool x, bool y) {
+  return x && y;
 }
 
-int nzStero::check_or(int x, int y) {
-  if (check(x) == HIGH || check(y) == HIGH) {
-    return HIGH;
-  }
-  return LOW;
+bool nzStero::l_or(bool x, bool y) {
+  return x || y;
 }
 
-int nzStero::check_nand(int x, int y) {
-  if (check(x) == HIGH && check(y) == HIGH) {
-    return LOW;
-  }
-  return HIGH;
+bool nzStero::l_nand(bool x, bool y) {
+  return !(x && y);
 }
 
-int nzStero::check_nor(int x, int y) {
-  if (check(x) == LOW || check(y) == LOW) {
-    return HIGH;
-  }
-  return LOW;
+bool nzStero::l_nor(bool x, bool y) {
+  return !(x || y);
 }
 
-int nzStero::check_xor(int x, int y) {
-  if (check(x) == HIGH && check(y) == HIGH) {
-    return LOW;
-  }
-  if (check(x) == HIGH || check(y) == HIGH) {
-    return HIGH;
-  }
-  return LOW;
+bool nzStero::l_xor(bool x, bool y) {
+  return x != y;
 }
 
+bool nzStero::l_xnor(bool x, bool y) {
+  return x == y;
+}
+
+bool nzStero::l_not(bool x) {
+  return !x;
+}
 bool nzStero::startsWith(const char* phrase, const char* letter) {
   return (*phrase == *letter);  // Modify condition
 }
