@@ -2,7 +2,6 @@
 #include <EEPROM.h>
 #include <SoftwareSerial.h>
 
-
 SoftwareSerial a(3, 1);
 
 const int EEPROM_SIZE = 1024;
@@ -11,9 +10,9 @@ int numberOfTimers = 0;
 const int MAX_GENERATORS = 10;
 int acAdres = 0;
 int countMax = 999;
-class nzStero {
+class Vena {
 public:
-  nzStero();
+  Vena();
   void initialize();
 
   int check(int, String impuls = "");  // Dodano funkcję z dwoma parametrami
@@ -44,7 +43,7 @@ private:
   bool startsWith(const char* phrase, const char* letter);
   static const char* errors[];
 
-  static nzStero* instance;
+  static Vena* instance;
   struct Pin {
     int pinNumber;
     bool value;
@@ -74,9 +73,9 @@ private:
 
 
 
-nzStero::nzStero() {
+Vena::Vena() {
 }
-void nzStero::initialize() {
+void Vena::initialize() {
   const char* errors[] = {
     "Bez błędu",
     "Zły input ",
@@ -111,7 +110,7 @@ void nzStero::initialize() {
 }
 
 
-int nzStero::check(int index, String impuls = "") {
+int Vena::check(int index, String impuls = "") {
   if (index >= 0 && index < 4) {
     int actualValueIn = digitalRead(input[index].pinNumber);
     int lastValueIn = input[index].previousValue;
@@ -145,7 +144,7 @@ int nzStero::check(int index, String impuls = "") {
   }
   return -1;  // Default return value indicating an error
 }
-void nzStero::out(int index, bool val, unsigned long duration) {
+void Vena::out(int index, bool val, unsigned long duration) {
   if (duration == 0) {
     analogWrite(output[index].pinNumber, val ? 255 : 0);
   } else {
@@ -168,7 +167,7 @@ void nzStero::out(int index, bool val, unsigned long duration) {
     }
   }
 }
-bool nzStero::generateImpulse(String name, unsigned long czas1, unsigned long czas2, bool warunek) {
+bool Vena::generateImpulse(String name, unsigned long czas1, unsigned long czas2, bool warunek) {
   ImpulseGenerator* generator = nullptr;
 
   // Sprawdzamy, czy generator o podanej nazwie istnieje
@@ -215,35 +214,35 @@ bool nzStero::generateImpulse(String name, unsigned long czas1, unsigned long cz
   return false;
 }
 
-int nzStero::check_and(int x, int y) {
+int Vena::check_and(int x, int y) {
   if (check(x) == HIGH && check(y) == HIGH) {
     return HIGH;
   }
   return LOW;
 }
 
-int nzStero::check_or(int x, int y) {
+int Vena::check_or(int x, int y) {
   if (check(x) == HIGH || check(y) == HIGH) {
     return HIGH;
   }
   return LOW;
 }
 
-int nzStero::check_nand(int x, int y) {
+int Vena::check_nand(int x, int y) {
   if (check(x) == HIGH && check(y) == HIGH) {
     return LOW;
   }
   return HIGH;
 }
 
-int nzStero::check_nor(int x, int y) {
+int Vena::check_nor(int x, int y) {
   if (check(x) == LOW || check(y) == LOW) {
     return HIGH;
   }
   return LOW;
 }
 
-int nzStero::check_xor(int x, int y) {
+int Vena::check_xor(int x, int y) {
   if (check(x) == HIGH && check(y) == HIGH) {
     return LOW;
   }
@@ -253,12 +252,12 @@ int nzStero::check_xor(int x, int y) {
   return LOW;
 }
 
-bool nzStero::startsWith(const char* phrase, const char* letter) {
+bool Vena::startsWith(const char* phrase, const char* letter) {
   return (phrase[0] == letter);
 }
 
 
-void nzStero::setMarker(String name, int value) {
+void Vena::setMarker(String name, int value) {
   if (name.length() != 4 || name[0] != 'M' || !isdigit(name[1]) || !isdigit(name[2]) || !isdigit(name[3])) {
     Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu MXYZ, gdzie XYZ to trzy cyfry.");
     return;
@@ -272,12 +271,12 @@ void nzStero::setMarker(String name, int value) {
   setExtraVar(name, stringValue.c_str());
 }
 
-int nzStero::getMarker(const char* name) {
+int Vena::getMarker(const char* name) {
   int iMarker = getExtraVar(name, 1).toInt();
   return iMarker;
 }
 
-void nzStero::setCounter(String name, int value) {
+void Vena::setCounter(String name, int value) {
   if (name.length() != 4 || name[0] != 'C' || !isdigit(name[1]) || !isdigit(name[2]) || !isdigit(name[3])) {
     Serial.println("Błędna nazwa zmiennej. Oczekiwano formatu CXYZ, gdzie XYZ to trzy cyfry.");
     return;
@@ -301,7 +300,7 @@ void nzStero::setCounter(String name, int value) {
   setExtraVar(name, countFormat.c_str());
 }
 
-long int nzStero::getCounter(const char* name) {
+long int Vena::getCounter(const char* name) {
   String sCounter = getExtraVar(name, 6);
   String gCounter = sCounter.substring(6 - 3);
 
@@ -311,7 +310,7 @@ long int nzStero::getCounter(const char* name) {
   return lCounter;
 }
 
-void nzStero::addToCounter(const char* name, int value) {
+void Vena::addToCounter(const char* name, int value) {
   String sCounter = getExtraVar(name, 6);
   String fCounter = sCounter.substring(0, 3);
   String valueCounter = sCounter.substring(3);
@@ -332,7 +331,7 @@ void nzStero::addToCounter(const char* name, int value) {
   setExtraVar(name, charFinalCounter);
 }
 
-bool nzStero::checkCounter(const char* name) {
+bool Vena::checkCounter(const char* name) {
   String sCounter = getExtraVar(name, 6);
   String fCounter = sCounter.substring(0, 3);
   String valueCounter = sCounter.substring(3);
@@ -347,7 +346,7 @@ bool nzStero::checkCounter(const char* name) {
   }
 }
 
-void nzStero::resetCounter(const char* name) {
+void Vena::resetCounter(const char* name) {
   String sCounter = getExtraVar(name, 6);
   String fCounter = sCounter.substring(0, 3);
 
@@ -364,7 +363,7 @@ void nzStero::resetCounter(const char* name) {
 }
 
 
-void nzStero::startTimer(String name, unsigned long duration) {
+void Vena::startTimer(String name, unsigned long duration) {
   if (numberOfTimers < MAX_TIMER) {
     timers[numberOfTimers].name = name;
     timers[numberOfTimers].startTime = millis();
@@ -376,7 +375,7 @@ void nzStero::startTimer(String name, unsigned long duration) {
   }
 }
 
-bool nzStero::checkTimer(String name, unsigned long duration = 0) {
+bool Vena::checkTimer(String name, unsigned long duration = 0) {
   for (int i = 0; i < numberOfTimers; ++i) {
     if (timers[i].name == name) {
       if (duration == 0) {
@@ -403,7 +402,7 @@ bool nzStero::checkTimer(String name, unsigned long duration = 0) {
 
 
 
-void nzStero::setExtraVar(String name, const char* value) {
+void Vena::setExtraVar(String name, const char* value) {
   int address = findVariableAddress(name.c_str());
   if (address != -1) {
     for (int i = 0; i < strlen(value); i++) {
@@ -421,7 +420,7 @@ void nzStero::setExtraVar(String name, const char* value) {
   }
 }
 
-String nzStero::getExtraVar(const char* name, int length) {
+String Vena::getExtraVar(const char* name, int length) {
   int address = findVariableAddress(name);
   String finalValue = "";
   if (address != -1) {
@@ -441,7 +440,7 @@ String nzStero::getExtraVar(const char* name, int length) {
   return "-1";
 }
 
-int nzStero::findVariableAddress(const char* name) {
+int Vena::findVariableAddress(const char* name) {
   for (int address = 0; address < EEPROM_SIZE; address++) {
     int length = strlen(name);
     bool found = true;
@@ -458,7 +457,7 @@ int nzStero::findVariableAddress(const char* name) {
   return -1;
 }
 
-void nzStero::showInOut(bool inputs, bool outputs) {
+void Vena::showInOut(bool inputs, bool outputs) {
   if (inputs == 1) {
     Serial.print("Inputs: ");
     for (int i = 0; i < 4; i++) {
@@ -479,11 +478,11 @@ void nzStero::showInOut(bool inputs, bool outputs) {
   Serial.println(" ");
 }
 
-void nzStero::sendMsg(const char* message) {
+void Vena::sendMsg(const char* message) {
   a.write(message);  // nie moze byc @
   a.write('@');
 }
-String nzStero::readMsg() {
+String Vena::readMsg() {
   if (a.available()) {
     String cd = "";
     cd = a.readStringUntil('@');
