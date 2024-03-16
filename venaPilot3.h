@@ -84,6 +84,18 @@ Vena::Vena() {
 }
 
 void Vena::initialize() {
+    
+  input[0] = { D0, 0, 0 };
+  input[1] = { D3, 0, 0 };
+  input[2] = { D8, 0, 0 };
+  input[3] = { D6, 0, 0 };
+
+  output[0] = { D1, 0, 0 };
+  output[1] = { D5, 0, 0 };
+  output[2] = { D7, 0, 0 };
+  output[3] = { D4, 0, 0 };
+
+   a.begin(4800);
     for (int i = 0; i < 4; i++) {
         pinMode(input[i].pinNumber, INPUT);
         pinMode(output[i].pinNumber, OUTPUT);
