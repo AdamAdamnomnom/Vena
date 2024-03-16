@@ -41,7 +41,7 @@ private:
   String getExtraVar(const char* name, int lenght);
   int findVariableAddress(const char* name);
   bool startsWith(const char* phrase, const char* letter);
-  static const char* errors[];
+ 
 
   static Vena* instance;
   struct Pin {
@@ -76,16 +76,7 @@ private:
 Vena::Vena() {
 }
 void Vena::initialize() {
-  const char* errors[] = {
-    "Bez błędu",
-    "Zły input ",
-    "Zły output",
-    "Zła warotść",
-    "Nie utworzono markra",
-    "Marker już istnije",
-    "Nie zdefionowano wartośći ",
-    "Bład karty SD",
-  };
+ 
 
   input[0] = { 17, 0, 0 };
   input[1] = { 16, 0, 0 };
